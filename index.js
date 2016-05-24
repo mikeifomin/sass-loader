@@ -40,6 +40,7 @@ module.exports = function (content) {
     var resourcePath = this.resourcePath;
     var sassOptions = getLoaderConfig(this);
     var result;
+    var fsFromContext = this._compiler.inputFileSystem || fs;
 
     /**
      * Enhances the sass error with additional information about what actually went wrong.
@@ -69,7 +70,7 @@ module.exports = function (content) {
         // additional information by reading the err.file property
         msg = msg.replace(/\s*Current dir:\s*/, '');
 
-        err.message = getFileExcerptIfPossible(err) +
+        err.message = getFileExcerptIfPossible(err, fsFromContext) +
             msg.charAt(0).toUpperCase() + msg.slice(1) + os.EOL +
             '      in ' + err.file + ' (line ' + err.line + ', column ' + err.column + ')';
     }
@@ -125,7 +126,7 @@ module.exports = function (content) {
         if (!importToResolve) {
             // No import possibilities left. Let's pass that one back to libsass...
             return {
-                file: originalImport
+                contents: fsFromContext.readFileSync(originalImport)
             };
         }
 
@@ -137,7 +138,7 @@ module.exports = function (content) {
             // By removing the CSS file extension, we trigger node-sass to include the CSS file instead of just linking it.
             resolvedFilename = resolvedFilename.replace(matchCss, '');
             return {
-                file: resolvedFilename
+                contents: fsFromContext.readFileSync(resolvedFilename)
             };
         } catch (err) {
             return resolveSync(dirContext, originalImport, importsToResolve);
@@ -158,9 +159,11 @@ module.exports = function (content) {
 
         if (!importToResolve) {
             // No import possibilities left. Let's pass that one back to libsass...
-            done({
-                file: originalImport
-            });
+            fsFromContext.readFile(originalImport, function(err,data){
+              done({
+                  contents: data.toString('utf8')
+              });
+            })
             return;
         }
 
@@ -178,9 +181,13 @@ module.exports = function (content) {
             // Use self.loadModule() before calling done() to make imported files available to
             // other webpack tools like postLoaders etc.?
 
-            done({
-                file: resolvedFilename.replace(matchCss, '')
-            });
+            var filename = resolvedFilename.replace(matchCss, '');
+            console.log(22,filename);
+            fsFromContext.readFile(filename, function(err,data){
+              done({
+                  contents: data.toString('utf8')
+              });
+            })
         });
     }
 
@@ -297,7 +304,7 @@ module.exports = function (content) {
  * @param {SassError} err
  * @returns {string}
  */
-function getFileExcerptIfPossible(err) {
+function getFileExcerptIfPossible(err,fs) {
     var content;
 
     try {
