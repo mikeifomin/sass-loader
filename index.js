@@ -163,9 +163,13 @@ module.exports = function (content) {
               if (err) { 
                   done(err); 
               }
-              done({
-                  contents: data.toString('utf8')
-              });
+              let contents;
+              try {
+                  contents = data.toString('utf8');
+              } catch (err) {
+                  done(err);
+              }
+              done({ contents });
             })
             return;
         }
@@ -189,9 +193,13 @@ module.exports = function (content) {
               if (err) {
                 done(err);
               }
-              done({
-                  contents: data.toString('utf8')
-              });
+              let contents;
+              try {
+                  contents = data.toString('utf8');
+              } catch (err) {
+                  done(err);
+              }
+              done({ contents });            
             })
         });
     }
