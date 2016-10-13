@@ -160,6 +160,9 @@ module.exports = function (content) {
         if (!importToResolve) {
             // No import possibilities left. Let's pass that one back to libsass...
             fsFromContext.readFile(originalImport, function(err,data){
+              if (err) { 
+                  done(err); 
+              }
               done({
                   contents: data.toString('utf8')
               });
@@ -183,7 +186,10 @@ module.exports = function (content) {
 
             var filename = resolvedFilename.replace(matchCss, '');
             console.log(22,filename);
-            fsFromContext.readFile(filename, function(err,data){
+            fsFromContext.readFile(filename, function(err,data) {
+              if (err) {
+                done(err);
+              }
               done({
                   contents: data.toString('utf8')
               });
