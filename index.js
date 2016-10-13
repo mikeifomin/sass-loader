@@ -185,7 +185,6 @@ module.exports = function (content) {
             // other webpack tools like postLoaders etc.?
 
             var filename = resolvedFilename.replace(matchCss, '');
-            console.log(22,filename);
             fsFromContext.readFile(filename, function(err,data) {
               if (err) {
                 done(err);
